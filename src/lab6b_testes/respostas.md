@@ -53,3 +53,57 @@ O truncamento erra todos os tempos de 181 a 719 cujo adicional não seja múltip
 8, 100, 300 e 1000 passam: 8 está dentro da tolerância, 100 na tarifa fixa, 300 tem duas horas adicionais exatas e 1000 já está na diária. Essa suíte não detecta nenhum dos quatro defeitos. Além de omitir fronteiras, trata como um só grupo a faixa que contém várias tarifas.
 
 Resultado observado: **30 falhas e 24 testes passando**. As falhas são intencionais neste exercício, pois a implementação do slide deve ser preservada.
+
+## Exercício 3
+
+### (a) Tabela completa
+
+S = sim; N = não. C = credencial; V = compras ≥ R$ 150,00; A = cadastro no aplicativo; T = permanência ≤ 240 minutos.
+
+| Regra | C | V | A | T | Isento |
+| --- | --- | --- | --- | --- | --- |
+| C1 | S | S | S | S | S |
+| C2 | S | S | S | N | S |
+| C3 | S | S | N | S | S |
+| C4 | S | S | N | N | S |
+| C5 | S | N | S | S | S |
+| C6 | S | N | S | N | S |
+| C7 | S | N | N | S | S |
+| C8 | S | N | N | N | S |
+| C9 | N | S | S | S | S |
+| C10 | N | S | S | N | N |
+| C11 | N | S | N | S | S |
+| C12 | N | S | N | N | N |
+| C13 | N | N | S | S | S |
+| C14 | N | N | S | N | N |
+| C15 | N | N | N | S | N |
+| C16 | N | N | N | N | N |
+
+Tabela reduzida (X = condição indiferente):
+
+| Condição / ação | R1 | R2 | R3 | R4 | R5 |
+| --- | --- | --- | --- | --- | --- |
+| Credencial | S | N | N | N | N |
+| Compras ≥ R$ 150,00 | X | X | S | N | N |
+| Cadastro no aplicativo | X | X | X | S | N |
+| Permanência ≤ 240 minutos | X | N | S | S | X |
+| Isento | S | N | S | S | N |
+| Regras completas cobertas | C1–C8 | C10, C12, C14, C16 | C9, C11 | C13 | C15, C16 |
+
+- R1: credencial garante isenção, então compras, aplicativo e tempo são X.
+- R2: sem credencial e acima de 240 minutos, compras e aplicativo não concedem isenção, então ambos são X.
+- R3: compras suficientes e tempo permitido garantem isenção, então aplicativo é X.
+- R4: compras insuficientes tornam aplicativo e tempo necessários; não há X.
+- R5: sem credencial, compras suficientes ou aplicativo, nenhum tempo concede isenção, então tempo é X.
+
+As regras reduzidas podem se sobrepor em C16 (R2 e R5), mas ambas indicam False. A união cobre as 16 combinações.
+
+### (b) Implementação
+
+`isencao/isencao.py` implementa `pcd or (minutos <= 240 and (valor_compra >= 150 or cadastro_app))`, devolvendo um booleano.
+
+### (c) Valores concretos
+
+`test_isencao.py` tem cinco casos com ids R1 a R5. Compras e tempo usam 149,99/150,00 e 240/241. Em R1, os X desfavorecem a isenção; em R2, compras e aplicativo favorecem a isenção, verificando que o tempo ainda impede o benefício. R3 desativa o aplicativo e R5 usa tempo permitido.
+
+Resultado: **5 testes passando**.
