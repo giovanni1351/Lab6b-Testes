@@ -1,139 +1,115 @@
-## Exercício 1
+## exercício 1
 
-### (a) Implementação
+### (b) classes de equivalência
 
-`tarifa/estacionamento.py` calcula a tarifa e rejeita tempo negativo ou não inteiro. A divisão por 60 usa arredondamento para cima, pois uma fração de hora já é cobrada inteira.
-
-### (b) Classes de equivalência
-
-| Classe | Entrada (minutos inteiros) | Resultado | Representante |
+| classe | entrada (minutos inteiros) | resultado | representante |
 | --- | --- | --- | --- |
-| V1 | 0 a 15 | R$ 0,00 | 8 |
-| V2 | 16 a 180 | R$ 12,00 | 100 |
-| V3 | 181 a 240 | R$ 15,00 | 210 |
-| V4 | 241 a 300 | R$ 18,00 | 270 |
-| V5 | 301 a 360 | R$ 21,00 | 330 |
-| V6 | 361 a 420 | R$ 24,00 | 390 |
-| V7 | 421 a 480 | R$ 27,00 | 450 |
-| V8 | 481 a 540 | R$ 30,00 | 510 |
-| V9 | 541 a 600 | R$ 33,00 | 570 |
-| V10 | 601 a 660 | R$ 36,00 | 630 |
-| V11 | 661 a 720 | R$ 39,00 | 690 |
-| V12 | Acima de 720 | R$ 60,00 | 1000 |
-| I1 | Inteiros negativos | ValueError | -1 |
-| I2 | Valores não inteiros | TypeError | 15.5 |
+| v1 | 0 a 15 | r$ 0,00 | 8 |
+| v2 | 16 a 180 | r$ 12,00 | 100 |
+| v3 | 181 a 240 | r$ 15,00 | 210 |
+| v4 | 241 a 300 | r$ 18,00 | 270 |
+| v5 | 301 a 360 | r$ 21,00 | 330 |
+| v6 | 361 a 420 | r$ 24,00 | 390 |
+| v7 | 421 a 480 | r$ 27,00 | 450 |
+| v8 | 481 a 540 | r$ 30,00 | 510 |
+| v9 | 541 a 600 | r$ 33,00 | 570 |
+| v10 | 601 a 660 | r$ 36,00 | 630 |
+| v11 | 661 a 720 | r$ 39,00 | 690 |
+| v12 | acima de 720 | r$ 60,00 | 1000 |
+| i1 | inteiros negativos | erro de valor | -1 |
+| i2 | valores não inteiros | erro de tipo | 15.5 |
 
-181 a 720 não é uma única classe quando distinguimos o valor cobrado: há nove intervalos com resultados diferentes. Embora usem a mesma fórmula, cada início de hora adicional cria uma fronteira.
+não dá pra colocar de 181 a 720 em uma classe só, porque o preço muda nessa faixa. são nove faixas com preços diferentes. cada vez que começa mais uma hora, mesmo sem completar ela, o valor sobe 3 reais.
 
-### (c) Testes
+## exercício 2
 
-A suíte inclui representantes, 0, os vizinhos de 15 e 180 e os três valores ao redor de cada fronteira de hora (239/240/241 até 659/660/661), além de 719/720/721. Entradas negativas e de tipo incorreto têm testes separados com `pytest.raises`. Cada caso válido possui um identificador com tempo e tarifa.
+### (a) erros encontrados olhando o código
 
-A validação segue a convenção `isinstance(minutos, int)` apresentada no laboratório; em Python, `bool` também é uma subclasse de `int`.
-
-## Exercício 2
-
-### (a) Divergências por inspeção
-
-| Defeito | Menor entrada | Obtido | Esperado | Correção |
+| defeito | menor entrada | obtido | esperado | correção |
 | --- | --- | --- | --- | --- |
-| Rejeita zero com `<= 0` | 0 | ValueError | R$ 0,00 | Usar `< 0` |
-| Exclui 15 da tolerância com `< 15` | 15 | R$ 12,00 | R$ 0,00 | Usar `<= 15` |
-| Trunca a hora adicional com `// 60` | 181 | R$ 12,00 | R$ 15,00 | Usar `ceil((minutos - 180) / 60)` |
-| Aplica diária já em 720 com `< 720` | 720 | R$ 60,00 | R$ 39,00 | Usar `<= 720` |
+| dá erro para zero por usar `<= 0` | 0 | erro de valor | r$ 0,00 | usar `< 0` |
+| cobra com 15 minutos por usar `< 15` | 15 | r$ 12,00 | r$ 0,00 | usar `<= 15` |
+| não cobra a hora incompleta por usar `// 60` | 181 | r$ 12,00 | r$ 15,00 | usar `ceil((minutos - 180) / 60)` |
+| cobra a diária com 720 minutos por usar `< 720` | 720 | r$ 60,00 | r$ 39,00 | usar `<= 720` |
 
-O truncamento erra todos os tempos de 181 a 719 cujo adicional não seja múltiplo de 60. Nos múltiplos exatos, o cálculo coincide com o esperado.
+entre 181 e 719 minutos, a conta fica errada quando sobra uma parte de hora depois dos 180 minutos. quando as horas extras são completas, como em 240 ou 300 minutos, o valor fica certo.
 
-### (b) Execução da suíte copiada
+### (b) resultado dos testes
 
-`test_estagiario.py` copia os mesmos dados e testes do exercício 1, mudando o import. A execução revela as quatro divergências: zero, tolerância, frações de hora e início antecipado da diária. Os resultados esperados continuam sendo os da especificação.
+sim, os testes pegam os quatro erros: zero dando erro, cobrança com 15 minutos, hora incompleta sem cobrar e diária começando antes da hora. deu **30 falhas e 24 testes passando**.
 
-### (c) Apenas quatro representantes
+### (c) apenas quatro representantes
 
-8, 100, 300 e 1000 passam: 8 está dentro da tolerância, 100 na tarifa fixa, 300 tem duas horas adicionais exatas e 1000 já está na diária. Essa suíte não detecta nenhum dos quatro defeitos. Além de omitir fronteiras, trata como um só grupo a faixa que contém várias tarifas.
+não pegaria nenhum erro. com 8 minutos é grátis, com 100 custa 12 reais, com 300 são duas horas extras completas e com 1000 já cobra a diária. esses quatro valores dão certo mesmo no código errado. faltam valores perto dos limites e com horas incompletas.
 
-Resultado observado: **30 falhas e 24 testes passando**. As falhas são intencionais neste exercício, pois a implementação do slide deve ser preservada.
+## exercício 3
 
-## Exercício 3
+### (a) tabela completa
 
-### (a) Tabela completa
+s = sim; n = não. c = credencial; v = compras ≥ r$ 150,00; a = cadastro no aplicativo; t = permanência ≤ 240 minutos.
 
-S = sim; N = não. C = credencial; V = compras ≥ R$ 150,00; A = cadastro no aplicativo; T = permanência ≤ 240 minutos.
-
-| Regra | C | V | A | T | Isento |
+| regra | c | v | a | t | isento |
 | --- | --- | --- | --- | --- | --- |
-| C1 | S | S | S | S | S |
-| C2 | S | S | S | N | S |
-| C3 | S | S | N | S | S |
-| C4 | S | S | N | N | S |
-| C5 | S | N | S | S | S |
-| C6 | S | N | S | N | S |
-| C7 | S | N | N | S | S |
-| C8 | S | N | N | N | S |
-| C9 | N | S | S | S | S |
-| C10 | N | S | S | N | N |
-| C11 | N | S | N | S | S |
-| C12 | N | S | N | N | N |
-| C13 | N | N | S | S | S |
-| C14 | N | N | S | N | N |
-| C15 | N | N | N | S | N |
-| C16 | N | N | N | N | N |
+| c1 | s | s | s | s | s |
+| c2 | s | s | s | n | s |
+| c3 | s | s | n | s | s |
+| c4 | s | s | n | n | s |
+| c5 | s | n | s | s | s |
+| c6 | s | n | s | n | s |
+| c7 | s | n | n | s | s |
+| c8 | s | n | n | n | s |
+| c9 | n | s | s | s | s |
+| c10 | n | s | s | n | n |
+| c11 | n | s | n | s | s |
+| c12 | n | s | n | n | n |
+| c13 | n | n | s | s | s |
+| c14 | n | n | s | n | n |
+| c15 | n | n | n | s | n |
+| c16 | n | n | n | n | n |
 
-Tabela reduzida (X = condição indiferente):
+tabela reduzida (x = tanto faz o valor, o resultado deve ser o mesmo):
 
-| Condição / ação | R1 | R2 | R3 | R4 | R5 |
+| condição / ação | r1 | r2 | r3 | r4 | r5 |
 | --- | --- | --- | --- | --- | --- |
-| Credencial | S | N | N | N | N |
-| Compras ≥ R$ 150,00 | X | X | S | N | N |
-| Cadastro no aplicativo | X | X | X | S | N |
-| Permanência ≤ 240 minutos | X | N | S | S | X |
-| Isento | S | N | S | S | N |
-| Regras completas cobertas | C1–C8 | C10, C12, C14, C16 | C9, C11 | C13 | C15, C16 |
+| credencial | s | n | n | n | n |
+| compras ≥ r$ 150,00 | x | x | s | n | n |
+| cadastro no aplicativo | x | x | x | s | n |
+| permanência ≤ 240 minutos | x | n | s | s | x |
+| isento | s | n | s | s | n |
+| regras completas cobertas | c1–c8 | c10, c12, c14, c16 | c9, c11 | c13 | c15, c16 |
 
-- R1: credencial garante isenção, então compras, aplicativo e tempo são X.
-- R2: sem credencial e acima de 240 minutos, compras e aplicativo não concedem isenção, então ambos são X.
-- R3: compras suficientes e tempo permitido garantem isenção, então aplicativo é X.
-- R4: compras insuficientes tornam aplicativo e tempo necessários; não há X.
-- R5: sem credencial, compras suficientes ou aplicativo, nenhum tempo concede isenção, então tempo é X.
+- r1: quem tem credencial não paga. por isso compras, aplicativo e tempo ficam com x.
+- r2: sem credencial e passando de 240 minutos, tem que pagar. compras e aplicativo ficam com x porque não mudam isso.
+- r3: comprou pelo menos 150 reais e ficou até 240 minutos, não paga. tanto faz ter aplicativo ou não, então ele fica com x.
+- r4: sem credencial e com menos de 150 reais em compras, precisa ter aplicativo e ficar até 240 minutos pra não pagar. aqui não tem x.
+- r5: sem credencial, sem aplicativo e com menos de 150 reais em compras, tem que pagar. o tempo fica com x porque não muda isso.
 
-As regras reduzidas podem se sobrepor em C16 (R2 e R5), mas ambas indicam False. A união cobre as 16 combinações.
+a c16 aparece em r2 e r5, mas nas duas o cliente paga. juntando as regras, todas as 16 combinações estão cobertas.
 
-### (b) Implementação
+## exercício 4
 
-`isencao/isencao.py` implementa `pcd or (minutos <= 240 and (valor_compra >= 150 or cadastro_app))`, devolvendo um booleano.
+### (a) onde o código errado falha
 
-### (c) Valores concretos
+no código errado, quem tem cadastro no aplicativo não paga, mesmo passando de 240 minutos.
 
-`test_isencao.py` tem cinco casos com ids R1 a R5. Compras e tempo usam 149,99/150,00 e 240/241. Em R1, os X desfavorecem a isenção; em R2, compras e aplicativo favorecem a isenção, verificando que o tempo ainda impede o benefício. R3 desativa o aplicativo e R5 usa tempo permitido.
+ele erra nas regras **c10 e c14**: o cliente não tem credencial, tem aplicativo e ficou mais de 240 minutos. o valor da compra não muda esse erro. o código diz que não precisa pagar, mas deveria pagar.
 
-Resultado: **5 testes passando**.
+os cinco testes do colega passam nos dois códigos. em r2 o cliente não tem aplicativo. em r4 ele tem, mas fica dentro do tempo. nenhum teste usa um cliente sem credencial, com aplicativo e passando do tempo.
 
-## Exercício 4
+### (b) correção mantendo cinco casos
 
-### (a) Implementação errada
+o x do aplicativo em r2 quer dizer que ter cadastro ou não deveria dar o mesmo resultado. o colega só testou sem cadastro. colocando um cliente com cadastro, dá pra ver se ele continua pagando quando passa de 240 minutos.
 
-`isencao/isento_errado.py` usa `pcd or (valor_compra >= 150 and minutos <= 240) or cadastro_app`. O cadastro ficou fora da restrição de tempo: um cliente cadastrado é isento mesmo sem credencial e acima de 240 minutos.
-
-Ela erra exatamente **C10 e C14** da tabela completa: sem credencial, com aplicativo e tempo acima de 240; compras podem ser suficientes ou insuficientes. Devolve True quando deveria devolver False.
-
-Os cinco casos originais passam nas duas implementações. R2 usa aplicativo desativado; R4 usa aplicativo ativado, mas tempo permitido. Portanto, nenhum caso combina aplicativo ativado e tempo excedido sem credencial.
-
-### (b) Correção mantendo cinco casos
-
-O X de aplicativo em R2 pressupõe que o aplicativo não concede isenção quando o tempo excede 240 minutos. O colega escolheu False, que não desafia essa suposição. Trocar para True verifica se a restrição de tempo também vale para clientes cadastrados.
-
-| Regra | Credencial | Compra (R$) | Aplicativo | Minutos | Esperado |
+| regra | credencial | compra (r$) | aplicativo | minutos | esperado |
 | --- | --- | --- | --- | --- | --- |
-| R1 | True | 149,99 | False | 241 | True |
-| R2 | False | 150,00 | True | 241 | False |
-| R3 | False | 150,00 | False | 240 | True |
-| R4 | False | 149,99 | True | 240 | True |
-| R5 | False | 149,99 | False | 240 | False |
+| r1 | sim | 149,99 | não | 241 | sim |
+| r2 | não | 150,00 | sim | 241 | não |
+| r3 | não | 150,00 | não | 240 | sim |
+| r4 | não | 149,99 | sim | 240 | sim |
+| r5 | não | 149,99 | não | 240 | não |
 
-R2 agora corresponde a C10 e detecta o defeito. Também usamos limites nos valores de compras e tempo. Continuam sendo cinco casos por suíte: os originais e os corrigidos são executados contra cada implementação para demonstrar a diferença.
+agora r2 testa a c10 e pega o erro. continuam sendo cinco casos, usando valores perto dos limites de compra e tempo.
 
-### (c) Regra geral para os X
+### (c) regra geral para os x
 
-Escolha um valor que, se a condição fosse considerada indevidamente, favoreceria a ação contrária à esperada. Para uma regra que concede isenção, use X desfavoráveis ao benefício; para uma regra que nega isenção, use X favoráveis. Assim o teste desafia a independência declarada pelo X. Um único valor ainda não prova independência para todas as combinações: quando necessário, teste outras combinações da tabela completa.
-
-Resultado: **19 testes passando e 1 falha intencional**, em R2 da suíte corrigida aplicada à implementação errada. A implementação correta passa nos cinco casos corrigidos; a errada passa nos cinco originais.
+nos x, escolha um valor que ajude a mostrar um erro. se o resultado é não pagar, coloque valores que normalmente fariam o cliente pagar. se o resultado é pagar, coloque valores que normalmente ajudariam a não pagar. assim dá pra conferir se o x realmente não muda o resultado. um valor só pode não pegar todos os erros, então às vezes precisa testar outras combinações.
