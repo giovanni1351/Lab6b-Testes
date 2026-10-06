@@ -107,3 +107,33 @@ As regras reduzidas podem se sobrepor em C16 (R2 e R5), mas ambas indicam False.
 `test_isencao.py` tem cinco casos com ids R1 a R5. Compras e tempo usam 149,99/150,00 e 240/241. Em R1, os X desfavorecem a isenção; em R2, compras e aplicativo favorecem a isenção, verificando que o tempo ainda impede o benefício. R3 desativa o aplicativo e R5 usa tempo permitido.
 
 Resultado: **5 testes passando**.
+
+## Exercício 4
+
+### (a) Implementação errada
+
+`isencao/isento_errado.py` usa `pcd or (valor_compra >= 150 and minutos <= 240) or cadastro_app`. O cadastro ficou fora da restrição de tempo: um cliente cadastrado é isento mesmo sem credencial e acima de 240 minutos.
+
+Ela erra exatamente **C10 e C14** da tabela completa: sem credencial, com aplicativo e tempo acima de 240; compras podem ser suficientes ou insuficientes. Devolve True quando deveria devolver False.
+
+Os cinco casos originais passam nas duas implementações. R2 usa aplicativo desativado; R4 usa aplicativo ativado, mas tempo permitido. Portanto, nenhum caso combina aplicativo ativado e tempo excedido sem credencial.
+
+### (b) Correção mantendo cinco casos
+
+O X de aplicativo em R2 pressupõe que o aplicativo não concede isenção quando o tempo excede 240 minutos. O colega escolheu False, que não desafia essa suposição. Trocar para True verifica se a restrição de tempo também vale para clientes cadastrados.
+
+| Regra | Credencial | Compra (R$) | Aplicativo | Minutos | Esperado |
+| --- | --- | --- | --- | --- | --- |
+| R1 | True | 149,99 | False | 241 | True |
+| R2 | False | 150,00 | True | 241 | False |
+| R3 | False | 150,00 | False | 240 | True |
+| R4 | False | 149,99 | True | 240 | True |
+| R5 | False | 149,99 | False | 240 | False |
+
+R2 agora corresponde a C10 e detecta o defeito. Também usamos limites nos valores de compras e tempo. Continuam sendo cinco casos por suíte: os originais e os corrigidos são executados contra cada implementação para demonstrar a diferença.
+
+### (c) Regra geral para os X
+
+Escolha um valor que, se a condição fosse considerada indevidamente, favoreceria a ação contrária à esperada. Para uma regra que concede isenção, use X desfavoráveis ao benefício; para uma regra que nega isenção, use X favoráveis. Assim o teste desafia a independência declarada pelo X. Um único valor ainda não prova independência para todas as combinações: quando necessário, teste outras combinações da tabela completa.
+
+Resultado: **19 testes passando e 1 falha intencional**, em R2 da suíte corrigida aplicada à implementação errada. A implementação correta passa nos cinco casos corrigidos; a errada passa nos cinco originais.
