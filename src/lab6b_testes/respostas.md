@@ -30,3 +30,26 @@
 A suíte inclui representantes, 0, os vizinhos de 15 e 180 e os três valores ao redor de cada fronteira de hora (239/240/241 até 659/660/661), além de 719/720/721. Entradas negativas e de tipo incorreto têm testes separados com `pytest.raises`. Cada caso válido possui um identificador com tempo e tarifa.
 
 A validação segue a convenção `isinstance(minutos, int)` apresentada no laboratório; em Python, `bool` também é uma subclasse de `int`.
+
+## Exercício 2
+
+### (a) Divergências por inspeção
+
+| Defeito | Menor entrada | Obtido | Esperado | Correção |
+| --- | --- | --- | --- | --- |
+| Rejeita zero com `<= 0` | 0 | ValueError | R$ 0,00 | Usar `< 0` |
+| Exclui 15 da tolerância com `< 15` | 15 | R$ 12,00 | R$ 0,00 | Usar `<= 15` |
+| Trunca a hora adicional com `// 60` | 181 | R$ 12,00 | R$ 15,00 | Usar `ceil((minutos - 180) / 60)` |
+| Aplica diária já em 720 com `< 720` | 720 | R$ 60,00 | R$ 39,00 | Usar `<= 720` |
+
+O truncamento erra todos os tempos de 181 a 719 cujo adicional não seja múltiplo de 60. Nos múltiplos exatos, o cálculo coincide com o esperado.
+
+### (b) Execução da suíte copiada
+
+`test_estagiario.py` copia os mesmos dados e testes do exercício 1, mudando o import. A execução revela as quatro divergências: zero, tolerância, frações de hora e início antecipado da diária. Os resultados esperados continuam sendo os da especificação.
+
+### (c) Apenas quatro representantes
+
+8, 100, 300 e 1000 passam: 8 está dentro da tolerância, 100 na tarifa fixa, 300 tem duas horas adicionais exatas e 1000 já está na diária. Essa suíte não detecta nenhum dos quatro defeitos. Além de omitir fronteiras, trata como um só grupo a faixa que contém várias tarifas.
+
+Resultado observado: **30 falhas e 24 testes passando**. As falhas são intencionais neste exercício, pois a implementação do slide deve ser preservada.
